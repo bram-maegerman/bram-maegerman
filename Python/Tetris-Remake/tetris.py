@@ -12,6 +12,8 @@ class Grid(object):
         self.grid = []
         self.cubeGrid = []
         self.createGrid()
+        self.nextPieces = []
+        self.nextPieces.append(random.choice(tetris_pieces.getPieces()))
 
     def draw(self):
         for xs in range(len(self.cubeGrid)):
@@ -35,19 +37,25 @@ class Grid(object):
         print("\n\n")
     
     def checkLines(self):
+        line_amount = 0
         for xs in range(len(self.grid)):
             if "".join(self.grid[xs]) == "XXXXXXXXXX":
                 del self.grid[xs]
                 self.grid.insert(0, ["_" for x in range(10)])
-    
+                line_amount += 1
+        if line_amount > 0:
+            hud.add_score(line_amount)
+                
     def spawnPiece(self, piece):
         self.current_piece = piece
         for x in self.current_piece.spawn_positions:
             self.grid[x[0]][x[1]] = "C"
     
-    def spawnNextPiece(self):
+    def FillNextPiece(self):
         self.checkLines()
-        self.spawnPiece(random.choice(tetris_pieces.getPieces()))
+        nextPiece = self.nextPieces.pop(0)
+        self.nextPieces.append(random.choice(tetris_pieces.getPieces()))
+        self.spawnPiece(nextPiece)
 
     def move(self, direction):
         current_piece_positions = []
@@ -84,7 +92,7 @@ class Grid(object):
         else:
             for x in current_piece_positions:
                 self.grid[x[0] - 1][x[1]] = "X"
-            self.spawnNextPiece()
+            self.FillNextPiece()
             return False
         return True
 
@@ -167,16 +175,44 @@ class Cube(object):
             color = (255, 0, 0)
         pygame.draw.rect(window, color, self.innerrect)
 
+class Hud(object):
+    def __init__(self):
+        self.score = 0
+        self.score_pos = [340, 25]
+        self.score_font = pygame.font.Font('freesansbold.ttf', 32)
+
+    def draw(self):
+        score_text = self.score_font.render(str(self.score), True, (100, 100, 100))
+        textRect = score_text.get_rect()
+        textRect.topright = self.score_pos
+        window.blit(score_text, textRect)
+
+    def add_score(self, line_amount):
+        match line_amount:
+            case 1:
+                self.score += 40
+            case 2:
+                self.score += 100
+            case 3:
+                self.score += 300
+            case 4:
+                self.score += 1200
+
+            case _:
+                pass
+
 grid = Grid()
+hud = Hud()
 
 def render_frame():
     window.fill((0, 0, 0))
     grid.draw()
+    hud.draw()
 
 def main():
     running = True
     pygame.time.set_timer(MOVEDOWNEVENT, 1000)
-    grid.spawnNextPiece()
+    grid.FillNextPiece()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

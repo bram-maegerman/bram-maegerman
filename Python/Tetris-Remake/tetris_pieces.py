@@ -1,6 +1,7 @@
 class Cube_Piece(object):
     def __init__(self):
         self.spawn_positions = [[0, 4], [0, 5], [1, 4], [1, 5]]
+        self.absolute_pos = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
     def cancelRotation(self):
         pass
@@ -12,6 +13,7 @@ class T_Piece(object):
     def __init__(self):
         self.spawn_positions = [[0, 4], [1,3], [1, 4], [1, 5]]
         self.current_rotation = 0
+        self.absolute_pos = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
     def cancelRotation(self):
         self.current_rotation -= 1
@@ -35,6 +37,7 @@ class I_Piece(object):
     def __init__(self):
         self.spawn_positions = [[1, 3], [1,4], [1, 5], [1, 6]]
         self.current_rotation = 0
+        self.absolute_pos = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
     def cancelRotation(self):
         self.current_rotation -= 1
@@ -58,6 +61,7 @@ class L_Piece(object):
     def __init__(self):
         self.spawn_positions = [[0, 5], [1,3], [1, 4], [1, 5]]
         self.current_rotation = 0
+        self.absolute_pos = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
     def cancelRotation(self):
         self.current_rotation -= 1
@@ -81,6 +85,7 @@ class J_Piece(object):
     def __init__(self):
         self.spawn_positions = [[0, 3], [1,3], [1, 4], [1, 5]]
         self.current_rotation = 0
+        self.absolute_pos = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
     def cancelRotation(self):
         self.current_rotation -= 1
