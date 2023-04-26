@@ -11,7 +11,7 @@ class Player(object):
     def __init__(self):
         self.x = 400
         self.y = 400
-        self.size = 10
+        self.size = 12
         self.speed = 7
 
     def draw(self):
@@ -42,10 +42,37 @@ class Map(object):
         self.height = 800
         self.floor = pygame.Rect(50, 50, self.width - 100, self.height - 100)
 
+        # ENEMY SPAWN ANIMATION
+        self.spawning_enemy = False
+        self.spawn_animation_length = 120 # length in frames 
+        self.spawn_animation_current_frame = 0
+        self.spawn_animation_current_position = (0, 0)
+        self.spawn_animation_rect = pygame.Rect(0, 0, 25, 25)
+
     def draw(self):
         window.fill((50, 50, 50))
         pygame.draw.polygon(window, (75, 75, 75), ((0, 0), (800, 0), (0, 800)))
         pygame.draw.rect(window, (100, 100, 100), self.floor)
+        if self.spawning_enemy is True:
+            self.run_spawn_animation()
+
+    def start_spawn_animation(self, spawn_position):
+        self.spawn_animation_current_position = spawn_position
+        self.spawning_enemy = True
+
+    def run_spawn_animation(self):
+        if self.spawn_animation_current_frame < self.spawn_animation_length:
+            self.spawn_animation_rect.center = self.spawn_animation_current_position
+            if self.spawn_animation_current_frame > 10 and self.spawn_animation_current_frame < 50:
+                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] - 1)
+            elif self.spawn_animation_current_frame > 70 and self.spawn_animation_current_frame < 110:
+                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] + 1)
+
+            pygame.draw.rect(window, (50, 50, 50), self.spawn_animation_rect)
+            self.spawn_animation_current_frame += 1
+        else: 
+            self.spawn_animation_current_frame = 0
+            self.spawning_enemy = False
 
 player = Player()
 map = Map()
@@ -62,6 +89,9 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 player.dash()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    map.start_spawn_animation((400, 37))
 
         render_frame()
         clock.tick(60)
