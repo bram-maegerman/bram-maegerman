@@ -1,5 +1,4 @@
-import pygame
-from math import radians, sin, cos
+import pygame, math
 
 pygame.init()
 
@@ -14,27 +13,47 @@ class Player(object):
         self.size = 12
         self.speed = 7
 
+        #DASH ABILITY
+        self.dashing = False
+        self.dash_time = 30
+        self.dash_speed = 70
+        self.dash_time_current = 0
+
     def draw(self):
         self.update_movement()
         pygame.draw.circle(window, (255, 255, 255), (self.x, self.y), self.size)
     
     def update_movement(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_z]:
-            if self.y > 60:
-                self.y -= self.speed
-        if keys[pygame.K_s]:
-            if self.y < 740:
-                self.y += self.speed
-        if keys[pygame.K_q]:
-            if self.x > 60:
-                self.x -= self.speed
-        if keys[pygame.K_d]:
-            if self.x < 740:
-                self.x += self.speed
+        if self.dashing:
+            self.run_dash()
+        else:
+            if keys[pygame.K_z]:
+                if self.y > 60:
+                    self.y -= self.speed
+            if keys[pygame.K_s]:
+                if self.y < 740:
+                    self.y += self.speed
+            if keys[pygame.K_q]:
+                if self.x > 60:
+                    self.x -= self.speed
+            if keys[pygame.K_d]:
+                if self.x < 740:
+                    self.x += self.speed
 
-    def dash(self):
+    def start_dash(self):
         mouse_pos = pygame.mouse.get_pos()
+        self.dash_direction = math.radians(math.degrees(math.atan2(mouse_pos[0] - self.x, mouse_pos[1] - self.y))) + 360
+        self.dashing = True
+
+    def run_dash(self):
+        if self.dash_time_current < self.dash_time:
+            self.x += math.cos(self.dash_direction) * self.speed
+            self.y += math.sin(self.dash_direction) * self.speed
+            self.dash_time_current += 1
+        else:
+            self.dashing = False
+            self.dash_time_current = 0
 
 class Map(object):
     def __init__(self):
@@ -88,7 +107,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                player.dash()
+                player.start_dash()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     map.start_spawn_animation((400, 37))
