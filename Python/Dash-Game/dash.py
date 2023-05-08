@@ -15,8 +15,8 @@ class Player(object):
 
         #DASH ABILITY
         self.dashing = False
-        self.dash_time = 30
-        self.dash_speed = 70
+        self.dash_time = 7
+        self.dash_speed = 25
         self.dash_time_current = 0
 
     def draw(self):
@@ -43,13 +43,13 @@ class Player(object):
 
     def start_dash(self):
         mouse_pos = pygame.mouse.get_pos()
-        self.dash_direction = math.radians(math.degrees(math.atan2(mouse_pos[0] - self.x, mouse_pos[1] - self.y))) + 360
+        self.dash_direction = math.radians(math.degrees(math.atan2(mouse_pos[1] - self.y, mouse_pos[0] - self.x)))
         self.dashing = True
 
     def run_dash(self):
         if self.dash_time_current < self.dash_time:
-            self.x += math.cos(self.dash_direction) * self.speed
-            self.y += math.sin(self.dash_direction) * self.speed
+            self.x += math.cos(self.dash_direction) * self.dash_speed
+            self.y += math.sin(self.dash_direction) * self.dash_speed
             self.dash_time_current += 1
         else:
             self.dashing = False
