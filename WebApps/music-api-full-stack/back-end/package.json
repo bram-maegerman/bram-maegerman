@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "nodemon -L app.ts --delay 3"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
