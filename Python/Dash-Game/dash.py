@@ -85,10 +85,11 @@ class Enemy(object):
             pygame.draw.circle(window, (255, 0, 0), (self.x, self.y), self.size)
         
     def move(self):
-        player_pos = (player.x, player.y)
-        self.dash_direction = math.radians(math.degrees(math.atan2(player_pos[1] - self.y, player_pos[0] - self.x)))
-        self.x += math.cos(self.dash_direction) * self.speed
-        self.y += math.sin(self.dash_direction) * self.speed
+        if abs(player.x - self.x) > 30 or abs(player.y - self.y) > 30:
+            player_pos = (player.x, player.y)
+            self.dash_direction = math.radians(math.degrees(math.atan2(player_pos[1] - self.y, player_pos[0] - self.x)))
+            self.x += math.cos(self.dash_direction) * self.speed
+            self.y += math.sin(self.dash_direction) * self.speed
 
     def start_spawn_animation(self, spawn_position):
         self.spawn_animation_current_position = spawn_position
