@@ -48,12 +48,73 @@ class Player(object):
 
     def run_dash(self):
         if self.dash_time_current < self.dash_time:
-            self.x += math.cos(self.dash_direction) * self.dash_speed
-            self.y += math.sin(self.dash_direction) * self.dash_speed
-            self.dash_time_current += 1
+            newx = self.x + math.cos(self.dash_direction) * self.dash_speed
+            newy = self.y + math.sin(self.dash_direction) * self.dash_speed
+            if map.check_map_bounds(newx, newy):
+                self.x = newx
+                self.y = newy
+                self.dash_time_current += 1
+            else:
+                self.dashing = False
+                self.dash_time_current = 0
         else:
             self.dashing = False
             self.dash_time_current = 0
+
+class Enemy(object):
+    def __init__(self, spawn_pos):
+        self.x = 0
+        self.y = 0
+        self.size = 10
+        self.speed = 2
+
+        # ENEMY SPAWN ANIMATION
+        self.spawning_enemy = False
+        self.spawn_animation_length = 240 # length in frames 
+        self.spawn_animation_current_frame = 0
+        self.spawn_animation_current_position = (0, 0)
+        self.spawn_animation_moving_doorparts = [pygame.Rect(0, 0, 30, 30), pygame.Rect(0, 0, 30, 30)]
+        self.spawn_animation_static_doorparts = pygame.Rect(0, 0, 30, 30)
+        self.start_spawn_animation(spawn_pos)
+
+    def draw(self):
+        if self.spawning_enemy is True:
+            self.run_spawn_animation()
+        else:
+            self.move()
+            pygame.draw.circle(window, (255, 0, 0), (self.x, self.y), self.size)
+        
+    def move(self):
+        player_pos = (player.x, player.y)
+        self.dash_direction = math.radians(math.degrees(math.atan2(player_pos[1] - self.y, player_pos[0] - self.x)))
+        self.x += math.cos(self.dash_direction) * self.speed
+        self.y += math.sin(self.dash_direction) * self.speed
+
+    def start_spawn_animation(self, spawn_position):
+        self.spawn_animation_current_position = spawn_position
+        self.spawn_animation_static_doorparts.center = spawn_position
+        self.x, self.y = spawn_position[0], spawn_position[1]
+        self.spawning_enemy = True
+
+    def run_spawn_animation(self):
+        if self.spawn_animation_current_frame < self.spawn_animation_length:
+            for x in self.spawn_animation_moving_doorparts:
+                x.center = self.spawn_animation_current_position
+            if self.spawn_animation_current_frame > 20 and self.spawn_animation_current_frame < 50:
+                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] - 1)
+                self.x, self.y = self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] - 1
+            elif self.spawn_animation_current_frame > 90 and self.spawn_animation_current_frame < 150:
+                self.x, self.y = self.x, self.y + 1
+            elif self.spawn_animation_current_frame > 190 and self.spawn_animation_current_frame < 220:
+                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] + 1)
+            pygame.draw.rect(window, (50, 50, 50), self.spawn_animation_static_doorparts)
+            pygame.draw.circle(window, (255, 0, 0), (self.x, self.y), self.size)
+            pygame.draw.rect(window, (100, 100, 100), self.spawn_animation_moving_doorparts[0])
+            pygame.draw.rect(window, (50, 50, 50), self.spawn_animation_moving_doorparts[1], 1)
+            self.spawn_animation_current_frame += 1
+        else: 
+            self.spawn_animation_current_frame = 0
+            self.spawning_enemy = False
 
 class Map(object):
     def __init__(self):
@@ -61,43 +122,24 @@ class Map(object):
         self.height = 800
         self.floor = pygame.Rect(50, 50, self.width - 100, self.height - 100)
 
-        # ENEMY SPAWN ANIMATION
-        self.spawning_enemy = False
-        self.spawn_animation_length = 120 # length in frames 
-        self.spawn_animation_current_frame = 0
-        self.spawn_animation_current_position = (0, 0)
-        self.spawn_animation_rect = pygame.Rect(0, 0, 25, 25)
-
     def draw(self):
         window.fill((50, 50, 50))
         pygame.draw.polygon(window, (75, 75, 75), ((0, 0), (800, 0), (0, 800)))
         pygame.draw.rect(window, (100, 100, 100), self.floor)
-        if self.spawning_enemy is True:
-            self.run_spawn_animation()
 
-    def start_spawn_animation(self, spawn_position):
-        self.spawn_animation_current_position = spawn_position
-        self.spawning_enemy = True
-
-    def run_spawn_animation(self):
-        if self.spawn_animation_current_frame < self.spawn_animation_length:
-            self.spawn_animation_rect.center = self.spawn_animation_current_position
-            if self.spawn_animation_current_frame > 10 and self.spawn_animation_current_frame < 50:
-                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] - 1)
-            elif self.spawn_animation_current_frame > 70 and self.spawn_animation_current_frame < 110:
-                self.spawn_animation_current_position = (self.spawn_animation_current_position[0], self.spawn_animation_current_position[1] + 1)
-
-            pygame.draw.rect(window, (50, 50, 50), self.spawn_animation_rect)
-            self.spawn_animation_current_frame += 1
-        else: 
-            self.spawn_animation_current_frame = 0
-            self.spawning_enemy = False
+    def check_map_bounds(self, x, y):
+        if y > 60 and y < 740 and x > 60 and x < 740:
+            return True
+        return False
 
 player = Player()
 map = Map()
+enemies = []
 
 def render_frame():
     map.draw()
+    for x in enemies:
+        x.draw()
     player.draw()
 
 def main():
@@ -109,8 +151,8 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 player.start_dash()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    map.start_spawn_animation((400, 37))
+                if event.key == pygame.K_e:
+                    enemies.append(Enemy((400, 35)))
 
         render_frame()
         clock.tick(60)
