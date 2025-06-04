@@ -19,6 +19,9 @@ class Player(object):
         self.dash_speed = 25
         self.dash_time_current = 0
 
+        # HITBOX
+        self.hitbox = pygame.Rect(self.x, self.y, self.size + 2, self.size + 2)
+
     def draw(self):
         self.update_movement()
         pygame.draw.circle(window, (255, 255, 255), (self.x, self.y), self.size)
@@ -54,12 +57,19 @@ class Player(object):
                 self.x = newx
                 self.y = newy
                 self.dash_time_current += 1
+                self.hitbox.center = (self.x, self.y)
+                self.check_enemy_collisions()
             else:
                 self.dashing = False
                 self.dash_time_current = 0
         else:
             self.dashing = False
             self.dash_time_current = 0
+
+    def check_enemy_collisions(self):
+        for index, e in enumerate(enemies):
+            if e.hitbox.colliderect(self.hitbox):
+                enemies.pop(index)
 
 class Enemy(object):
     def __init__(self, spawn_pos):
@@ -77,6 +87,9 @@ class Enemy(object):
         self.spawn_animation_static_doorparts = pygame.Rect(0, 0, 30, 30)
         self.start_spawn_animation(spawn_pos)
 
+        # HITBOX
+        self.hitbox = pygame.Rect(self.x, self.y, self.size + 2, self.size + 2)
+
     def draw(self):
         if self.spawning_enemy is True:
             self.run_spawn_animation()
@@ -90,6 +103,7 @@ class Enemy(object):
             self.dash_direction = math.radians(math.degrees(math.atan2(player_pos[1] - self.y, player_pos[0] - self.x)))
             self.x += math.cos(self.dash_direction) * self.speed
             self.y += math.sin(self.dash_direction) * self.speed
+            self.hitbox.center = (self.x, self.y)
 
     def start_spawn_animation(self, spawn_position):
         self.spawn_animation_current_position = spawn_position
@@ -135,7 +149,7 @@ class Map(object):
 
 player = Player()
 map = Map()
-enemies = []
+enemies: list[Enemy] = []
 
 def render_frame():
     map.draw()
